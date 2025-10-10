@@ -1,0 +1,1 @@
+Use `alembic revision --autogenerate -m "initial"` then `alembic upgrade head` to create and apply migrations.
