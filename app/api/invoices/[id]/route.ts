@@ -1,4 +1,35 @@
 import { type NextRequest, NextResponse } from "next/server"
+import QRCode from "qrcode"
+
+// Function to generate QR code data URL
+async function generateQRCode(invoiceId: string, supplierTpin: string, buyerTpin: string, amount: number, vat: number, hash: string): Promise<string> {
+  const qrData = {
+    invoiceId,
+    supplierTpin,
+    buyerTpin,
+    amount,
+    vat,
+    hash,
+    timestamp: new Date().toISOString()
+  }
+
+  try {
+    // Generate QR code as data URL (base64)
+    const qrCodeDataURL = await QRCode.toDataURL(JSON.stringify(qrData), {
+      width: 200,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    })
+    return qrCodeDataURL
+  } catch (error) {
+    console.error("Error generating QR code:", error)
+    // Fallback to placeholder if QR generation fails
+    return `/placeholder.svg?height=200&width=200&query=QR code for invoice ${invoiceId}`
+  }
+}
 
 // Mock database of invoices
 const mockInvoices: Record<string, any> = {
@@ -42,7 +73,20 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const invoice = mockInvoices[invoiceId]
 
     if (invoice) {
-      return NextResponse.json(invoice)
+      // Generate QR code for the retrieved invoice
+      const qrCode = await generateQRCode(
+        invoice.invoiceId,
+        invoice.supplierTpin,
+        invoice.buyerTpin,
+        invoice.amount,
+        invoice.vat,
+        invoice.hash
+      )
+
+      return NextResponse.json({
+        ...invoice,
+        qrCode
+      })
     } else {
       return NextResponse.json({ valid: false, error: "Invoice not found in registry" }, { status: 404 })
     }

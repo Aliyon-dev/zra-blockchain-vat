@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import QRCode from "qrcode"
 
 // Mock function to generate a simple hash
 function generateHash(data: string): string {
@@ -11,9 +12,34 @@ function generateHash(data: string): string {
   return Math.abs(hash).toString(16).padStart(16, "0")
 }
 
-// Mock function to generate QR code URL
-function generateQRCode(invoiceId: string): string {
-  return `/placeholder.svg?height=200&width=200&query=QR code for invoice ${invoiceId}`
+// Function to generate QR code data URL
+async function generateQRCode(invoiceId: string, supplierTpin: string, buyerTpin: string, amount: number, vat: number, hash: string): Promise<string> {
+  const qrData = {
+    invoiceId,
+    supplierTpin,
+    buyerTpin,
+    amount,
+    vat,
+    hash,
+    timestamp: new Date().toISOString()
+  }
+
+  try {
+    // Generate QR code as data URL (base64)
+    const qrCodeDataURL = await QRCode.toDataURL(JSON.stringify(qrData), {
+      width: 200,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    })
+    return qrCodeDataURL
+  } catch (error) {
+    console.error("Error generating QR code:", error)
+    // Fallback to placeholder if QR generation fails
+    return `/placeholder.svg?height=200&width=200&query=QR code for invoice ${invoiceId}`
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -33,7 +59,9 @@ export async function POST(request: NextRequest) {
     const timestamp = new Date().toISOString()
     const dataToHash = `${invoiceId}${supplierTpin}${buyerTpin}${amount}${vat}${timestamp}`
     const hash = generateHash(dataToHash)
-    const qrCode = generateQRCode(invoiceId)
+
+    // Generate QR code with invoice data
+    const qrCode = await generateQRCode(invoiceId, supplierTpin, buyerTpin, amount, vat, hash)
 
     // In a real app, this would save to blockchain/database
     console.log("[v0] Invoice issued:", { invoiceId, supplierTpin, buyerTpin, amount, vat })
@@ -43,6 +71,10 @@ export async function POST(request: NextRequest) {
       hash,
       timestamp: new Date(timestamp).toLocaleString(),
       qrCode,
+      supplierTpin,
+      buyerTpin,
+      amount,
+      vat
     })
   } catch (error) {
     console.error("[v0] Error in POST /api/invoices:", error)
