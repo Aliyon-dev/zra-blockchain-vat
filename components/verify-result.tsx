@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckCircle2, XCircle, Calendar, Hash, User, DollarSign } from "lucide-react"
+import Image from "next/image"
 
 interface VerifyResultProps {
   data: {
@@ -14,6 +15,7 @@ interface VerifyResultProps {
     vat?: number
     hash?: string
     timestamp?: string
+    qrCode?: string
     error?: string
   }
 }
@@ -118,6 +120,16 @@ export default function VerifyResult({ data }: VerifyResultProps) {
             </div>
           </div>
         </div>
+
+        {data.qrCode && (
+          <div className="flex flex-col items-center gap-4 p-6 rounded-lg bg-card border border-border">
+            <p className="text-sm font-medium text-muted-foreground">Invoice QR Code</p>
+            <div className="relative w-48 h-48 bg-white p-4 rounded-lg">
+              <Image src={data.qrCode || "/placeholder.svg"} alt="Invoice QR Code" fill className="object-contain" />
+            </div>
+            <p className="text-xs text-muted-foreground text-center">Original QR code from the issued invoice</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
