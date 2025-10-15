@@ -1,17 +1,19 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 from .models import InvoiceStatus
 
 
 class InvoiceCreate(BaseModel):
-    supplier_tpin: str = Field(..., example="123456789")
-    buyer_tpin: str = Field(..., example="987654321")
-    vat: float = Field(..., example=12.5)
-    amount: float = Field(..., example=1000.0)
+    supplier_tpin: str = Field(..., json_schema_extra={'example': '123456789'})
+    buyer_tpin: str = Field(..., json_schema_extra={'example': '987654321'})
+    vat: float = Field(..., json_schema_extra={'example': 12.5})
+    amount: float = Field(..., json_schema_extra={'example': 1000.0})
 
 
 class InvoiceRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     supplier_tpin: str
     buyer_tpin: str
@@ -19,6 +21,3 @@ class InvoiceRead(BaseModel):
     amount: float
     timestamp: datetime
     status: InvoiceStatus
-
-    class Config:
-        from_attributes = True
