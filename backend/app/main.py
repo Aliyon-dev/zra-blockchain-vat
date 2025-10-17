@@ -1,14 +1,12 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-from . import models, schemas, crud
+import models, schemas, crud
 from .database import engine, Base, get_db
 import os
 from .supabase_client import SUPABASE_URL, SUPABASE_KEY, ping_supabase
 from .database import engine
 
-# Avoid calling create_all unconditionally so Alembic remains the single
-# source of truth for schema migrations. Set DEV_CREATE_DB=true to allow
-# creating tables automatically in development.
+
 if os.getenv('DEV_CREATE_DB', 'false').lower() in ('1', 'true', 'yes'):
     Base.metadata.create_all(bind=engine)
 
@@ -46,8 +44,12 @@ def db_health():
 
 @app.post("/invoices", response_model=schemas.InvoiceRead, status_code=201)
 def create_invoice(invoice: schemas.InvoiceCreate, db: Session = Depends(get_db)):
-    inv = crud.create_invoice(db, invoice)
-    return inv
+    try:
+        inv = crud.create_invoice(db, invoice)
+        return inv
+    except ValueError as ve:
+        # Map validation / duplicate errors to 409 Conflict
+        raise HTTPException(status_code=409, detail=str(ve))
 
 
 @app.get("/invoices/{invoice_id}", response_model=schemas.InvoiceRead)
