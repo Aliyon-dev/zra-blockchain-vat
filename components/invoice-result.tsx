@@ -2,8 +2,10 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CheckCircle2, XCircle, Calendar, Hash, FileText } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { CheckCircle2, XCircle, Calendar, Hash, FileText, Download } from "lucide-react"
 import Image from "next/image"
+import { generateInvoicePDF } from "@/lib/pdf-generator"
 
 interface InvoiceResultProps {
   data: {
@@ -11,11 +13,30 @@ interface InvoiceResultProps {
     hash?: string
     timestamp?: string
     qrCode?: string
+    supplierTpin?: string
+    buyerTpin?: string
+    amount?: number
+    vat?: number
     error?: string
   }
 }
 
 export default function InvoiceResult({ data }: InvoiceResultProps) {
+  const handleDownloadPDF = async () => {
+    if (data.invoiceId && data.supplierTpin && data.buyerTpin && data.amount && data.vat && data.hash && data.timestamp && data.qrCode) {
+      await generateInvoicePDF({
+        invoiceId: data.invoiceId,
+        supplierTpin: data.supplierTpin,
+        buyerTpin: data.buyerTpin,
+        amount: data.amount,
+        vat: data.vat,
+        hash: data.hash,
+        timestamp: data.timestamp,
+        qrCode: data.qrCode
+      })
+    }
+  }
+
   if (data.error) {
     return (
       <Alert variant="destructive" className="border-destructive bg-destructive/10">
@@ -28,9 +49,20 @@ export default function InvoiceResult({ data }: InvoiceResultProps) {
   return (
     <Card className="border-success bg-success/5">
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <CheckCircle2 className="h-5 w-5 text-success" />
-          <CardTitle className="text-success">Invoice Issued Successfully</CardTitle>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-5 w-5 text-success" />
+            <CardTitle className="text-success">Invoice Issued Successfully</CardTitle>
+          </div>
+          <Button
+            onClick={handleDownloadPDF}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Download PDF
+          </Button>
         </div>
         <CardDescription className="text-muted-foreground">
           Your invoice has been recorded on the blockchain

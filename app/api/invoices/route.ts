@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import QRCode from "qrcode"
 
 const BACKEND_URL = process.env.BACKEND_URL
 
@@ -12,6 +13,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
+<<<<<<< HEAD
     const response = await fetch(`${BACKEND_URL}/invoices/`, {
       method: "POST",
       headers: {
