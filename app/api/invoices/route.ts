@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import QRCode from "qrcode"
 
 const BACKEND_URL = process.env.BACKEND_URL
 
