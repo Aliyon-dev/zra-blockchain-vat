@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, computed_field
 from typing import Optional
 from datetime import datetime
-from models.models import InvoiceStatus
+from app.models.models import InvoiceStatus
+from uuid import UUID
 
 
 class InvoiceCreate(BaseModel):
@@ -14,10 +15,31 @@ class InvoiceCreate(BaseModel):
 class InvoiceRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: int
+    id: UUID
     supplier_tpin: str
     buyer_tpin: str
     vat: float
     amount: float
     timestamp: datetime
     status: InvoiceStatus
+    
+    # Blockchain fields
+    blockchain_hash: Optional[str] = None
+    blockchain_tx_ref: Optional[str] = None
+    blockchain_timestamp: Optional[datetime] = None
+    
+    @computed_field
+    @property
+    def invoiceId(self) -> str:
+        """Frontend-compatible invoice ID"""
+        return str(self.id)
+
+
+class InvoiceVerify(BaseModel):
+    invoice_id: UUID = Field(..., description="Invoice ID to verify")
+
+
+class InvoiceVerifyResponse(BaseModel):
+    valid: bool
+    invoice: Optional[InvoiceRead] = None
+    error: Optional[str] = None

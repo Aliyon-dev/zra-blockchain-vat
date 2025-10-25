@@ -13,7 +13,9 @@ interface VerifyResultProps {
     amount?: number
     vat?: number
     hash?: string
+    blockchain_hash?: string
     timestamp?: string
+    status?: string
     error?: string
   }
 }
@@ -106,7 +108,7 @@ export default function VerifyResult({ data }: VerifyResultProps) {
             <Hash className="h-5 w-5 text-primary mt-0.5" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-muted-foreground mb-1">Blockchain Hash</p>
-              <p className="text-sm font-mono text-foreground break-all">{data.hash}</p>
+              <p className="text-sm font-mono text-foreground break-all">{data.blockchain_hash || data.hash}</p>
             </div>
           </div>
 

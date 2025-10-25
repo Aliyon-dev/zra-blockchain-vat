@@ -12,7 +12,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    const response = await fetch(`${BACKEND_URL}/invoices/`, {
+    if (!BACKEND_URL) {
+      return NextResponse.json({ error: "Backend URL not configured" }, { status: 500 })
+    }
+
+    const response = await fetch(`${BACKEND_URL}/invoices`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

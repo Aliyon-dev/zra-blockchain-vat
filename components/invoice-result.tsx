@@ -9,6 +9,9 @@ interface InvoiceResultProps {
   data: {
     invoiceId?: string
     hash?: string
+    blockchain_hash?: string
+    blockchain_tx_ref?: string
+    blockchain_timestamp?: string
     timestamp?: string
     qrCode?: string
     error?: string
@@ -50,9 +53,29 @@ export default function InvoiceResult({ data }: InvoiceResultProps) {
             <Hash className="h-5 w-5 text-primary mt-0.5" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-muted-foreground mb-1">Blockchain Hash</p>
-              <p className="text-sm font-mono text-foreground break-all">{data.hash}</p>
+              <p className="text-sm font-mono text-foreground break-all">{data.blockchain_hash || data.hash}</p>
             </div>
           </div>
+
+          {data.blockchain_tx_ref && (
+            <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border">
+              <Hash className="h-5 w-5 text-primary mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-muted-foreground mb-1">Transaction Reference</p>
+                <p className="text-sm font-mono text-foreground break-all">{data.blockchain_tx_ref}</p>
+              </div>
+            </div>
+          )}
+
+          {data.blockchain_timestamp && (
+            <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border">
+              <Calendar className="h-5 w-5 text-primary mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-muted-foreground mb-1">Blockchain Timestamp</p>
+                <p className="text-base text-foreground">{new Date(data.blockchain_timestamp).toLocaleString()}</p>
+              </div>
+            </div>
+          )}
 
           <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border">
             <Calendar className="h-5 w-5 text-primary mt-0.5" />
