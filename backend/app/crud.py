@@ -70,12 +70,15 @@ def create_invoice(db: Session, invoice: schemas.InvoiceCreate) -> models.Invoic
     
     # Generate QR code for the invoice
     try:
-        qr_data = qr_code.create_invoice_qr_data(
-            invoice_id=str(db_inv.id), # This was already correct!
-            blockchain_hash=db_inv.blockchain_hash or "",
-            timestamp=db_inv.timestamp.isoformat()
+        # --- FIX ---
+        # Call create_invoice_qr_data to get the JSON-like dictionary
+        qr_data_dict = qr_code.create_invoice_qr_data(
+            invoice_id=str(db_inv.id)
         )
-        qr_code_image = qr_code.generate_qr_code(qr_data, format="png")
+        
+        # Pass the dictionary to generate_qr_code
+        # It will be automatically converted to a JSON string
+        qr_code_image = qr_code.generate_qr_code(qr_data_dict, format="png")
         
         # Add QR code to response (not stored in DB)
         db_inv.qr_code = qr_code_image

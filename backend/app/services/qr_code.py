@@ -10,26 +10,32 @@ import json
 from typing import Dict, Any
 
 
-def generate_qr_code(data: Dict[str, Any], format: str = "png") -> str:
+def generate_qr_code(data, format: str = "png") -> str:
     """
     Generate a QR code from invoice data.
     
     Args:
-        data: Dictionary containing invoice data (id, blockchain_hash, timestamp)
+        data: Dictionary or string containing invoice data
         format: Output format - 'png' or 'svg'
     
     Returns:
         Base64 encoded QR code image
     """
-    # Convert data to JSON string
-    qr_data = json.dumps(data, sort_keys=True)
+    # Handle both dict and string inputs
+    if isinstance(data, dict):
+        qr_data = json.dumps(data, sort_keys=True)
+    elif isinstance(data, str):
+        qr_data = data
+    else:
+        raise ValueError("Data must be a dictionary or string")
     
     # Create QR code instance
     qr = qrcode.QRCode(
-        version=1,  # Controls size (1 is smallest, 40 is largest)
-        error_correction=qrcode.constants.ERROR_CORRECT_H,  # High error correction
-        box_size=10,  # Size of each box in pixels
-        border=4,  # Border size in boxes
+        version=1,
+        # Use Medium error correction for a less dense, easier-to-scan code
+        error_correction=qrcode.constants.ERROR_CORRECT_M, 
+        box_size=10,
+        border=4,
     )
     
     # Add data
@@ -69,14 +75,12 @@ def parse_qr_data(qr_string: str) -> Dict[str, Any]:
         raise ValueError(f"Invalid QR code data: {e}")
 
 
-def create_invoice_qr_data(invoice_id: str, blockchain_hash: str, timestamp: str) -> Dict[str, str]:
+def create_invoice_qr_data(invoice_id: str) -> Dict[str, str]:
     """
     Create standardized QR code data structure for invoices.
     
     Args:
         invoice_id: Invoice ID (UUID)
-        blockchain_hash: Blockchain hash for verification
-        timestamp: Invoice timestamp
     
     Returns:
         Dictionary with invoice QR data
@@ -85,7 +89,4 @@ def create_invoice_qr_data(invoice_id: str, blockchain_hash: str, timestamp: str
         "type": "zra_invoice",
         "version": "1.0",
         "invoice_id": invoice_id,
-        "blockchain_hash": blockchain_hash,
-        "timestamp": timestamp,
     }
-
