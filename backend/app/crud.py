@@ -1,9 +1,9 @@
 from app.models import models
 from sqlalchemy.orm import Session
 from app import schemas
-from app.services import validation, blockchain
+from app.services import validation, blockchain, qr_code
 from datetime import datetime
-
+from uuid import UUID  # <-- 1. Import UUID
 
 def create_invoice(db: Session, invoice: schemas.InvoiceCreate) -> models.Invoice:
     # Validate TPINs
@@ -50,7 +50,8 @@ def create_invoice(db: Session, invoice: schemas.InvoiceCreate) -> models.Invoic
     # Submit to blockchain ledger
     try:
         metadata = {
-            "invoice_id": db_inv.id,
+            # 2. Convert the UUID to a string
+            "invoice_id": str(db_inv.id), 
             "supplier_tpin": invoice.supplier_tpin,
             "buyer_tpin": invoice.buyer_tpin,
         }
@@ -67,14 +68,30 @@ def create_invoice(db: Session, invoice: schemas.InvoiceCreate) -> models.Invoic
         # Log error but don't fail the invoice creation
         print(f"Warning: Failed to register invoice {db_inv.id} on blockchain: {e}")
     
+    # Generate QR code for the invoice
+    try:
+        qr_data = qr_code.create_invoice_qr_data(
+            invoice_id=str(db_inv.id), # This was already correct!
+            blockchain_hash=db_inv.blockchain_hash or "",
+            timestamp=db_inv.timestamp.isoformat()
+        )
+        qr_code_image = qr_code.generate_qr_code(qr_data, format="png")
+        
+        # Add QR code to response (not stored in DB)
+        db_inv.qr_code = qr_code_image
+    except Exception as e:
+        print(f"Warning: Failed to generate QR code for invoice {db_inv.id}: {e}")
+    
     return db_inv
 
 
-def get_invoice(db: Session, invoice_id: int):
+# 3. Change invoice_id type from int to UUID
+def get_invoice(db: Session, invoice_id: UUID):
     return db.query(models.Invoice).filter(models.Invoice.id == invoice_id).first()
 
 
-def cancel_invoice(db: Session, invoice_id: int):
+# 4. Change invoice_id type from int to UUID
+def cancel_invoice(db: Session, invoice_id: UUID):
     inv = get_invoice(db, invoice_id)
     if not inv:
         return None

@@ -28,6 +28,9 @@ class InvoiceRead(BaseModel):
     blockchain_tx_ref: Optional[str] = None
     blockchain_timestamp: Optional[datetime] = None
     
+    # QR Code field (computed, not stored in DB)
+    qr_code: Optional[str] = None
+    
     @computed_field
     @property
     def invoiceId(self) -> str:
@@ -43,3 +46,14 @@ class InvoiceVerifyResponse(BaseModel):
     valid: bool
     invoice: Optional[InvoiceRead] = None
     error: Optional[str] = None
+
+
+class QRVerifyRequest(BaseModel):
+    qr_data: str = Field(..., description="QR code data string (JSON)")
+
+
+class QRVerifyResponse(BaseModel):
+    valid: bool
+    invoice: Optional[InvoiceRead] = None
+    error: Optional[str] = None
+    message: Optional[str] = None

@@ -5,7 +5,8 @@ from app import models, schemas, crud
 from app.database import engine, Base, get_db
 from app.supabase_client import ping_supabase
 from app.config import DEV_CREATE_DB, ALLOWED_ORIGINS, SUPABASE_URL, SUPABASE_KEY
-from app.services import blockchain
+from app.services import blockchain, qr_code
+from uuid import UUID
 
 if DEV_CREATE_DB:
     Base.metadata.create_all(bind=engine)
@@ -47,14 +48,14 @@ def create_invoice(invoice: schemas.InvoiceCreate, db: Session = Depends(get_db)
         raise HTTPException(status_code=409, detail=str(ve))
 
 @app.get("/invoices/{invoice_id}", response_model=schemas.InvoiceRead)
-def read_invoice(invoice_id: int, db: Session = Depends(get_db)):
+def read_invoice(invoice_id: UUID, db: Session = Depends(get_db)):
     inv = crud.get_invoice(db, invoice_id)
     if not inv:
         raise HTTPException(status_code=404, detail="Invoice not found")
     return inv
 
 @app.patch("/invoices/{invoice_id}", response_model=schemas.InvoiceRead)
-def patch_invoice(invoice_id: int, db: Session = Depends(get_db)):
+def patch_invoice(invoice_id: UUID, db: Session = Depends(get_db)):
     inv = crud.cancel_invoice(db, invoice_id)
     if not inv:
         raise HTTPException(status_code=404, detail="Invoice not found")
@@ -101,6 +102,96 @@ def verify_invoice(verify_request: schemas.InvoiceVerify, db: Session = Depends(
         
     except Exception as e:
         return schemas.InvoiceVerifyResponse(
+            valid=False,
+            error=f"Verification failed: {str(e)}"
+        )
+
+@app.post("/invoices/verify-qr", response_model=schemas.QRVerifyResponse)
+def verify_invoice_qr(qr_request: schemas.QRVerifyRequest, db: Session = Depends(get_db)):
+    """Verify an invoice using QR code data"""
+    try:
+        # Parse QR code data
+        try:
+            qr_data = qr_code.parse_qr_data(qr_request.qr_data)
+        except ValueError as e:
+            return schemas.QRVerifyResponse(
+                valid=False,
+                error="Invalid QR code format",
+                message=str(e)
+            )
+        
+        # Validate QR code structure
+        if qr_data.get("type") != "zra_invoice":
+            return schemas.QRVerifyResponse(
+                valid=False,
+                error="Invalid QR code type",
+                message="This QR code is not a ZRA invoice"
+            )
+        
+        invoice_id = qr_data.get("invoice_id")
+        blockchain_hash = qr_data.get("blockchain_hash")
+        
+        if not invoice_id or not blockchain_hash:
+            return schemas.QRVerifyResponse(
+                valid=False,
+                error="Incomplete QR code data",
+                message="QR code is missing required fields"
+            )
+        
+        # Get invoice from database
+        from uuid import UUID
+        try:
+            invoice_uuid = UUID(invoice_id)
+            invoice = db.query(models.Invoice).filter(models.Invoice.id == invoice_uuid).first()
+        except ValueError:
+            return schemas.QRVerifyResponse(
+                valid=False,
+                error="Invalid invoice ID format"
+            )
+        
+        if not invoice:
+            return schemas.QRVerifyResponse(
+                valid=False,
+                error="Invoice not found",
+                message=f"No invoice found with ID: {invoice_id}"
+            )
+        
+        # Verify blockchain hash matches
+        if invoice.blockchain_hash != blockchain_hash:
+            return schemas.QRVerifyResponse(
+                valid=False,
+                error="Hash mismatch",
+                message="QR code hash does not match database record"
+            )
+        
+        # Verify hash exists in blockchain ledger
+        blockchain_record = blockchain.verify_hash(blockchain_hash)
+        if not blockchain_record:
+            return schemas.QRVerifyResponse(
+                valid=False,
+                error="Hash not found in blockchain",
+                message="Invoice hash not found in blockchain ledger"
+            )
+        
+        # Generate QR code for response
+        try:
+            qr_data_new = qr_code.create_invoice_qr_data(
+                invoice_id=str(invoice.id),
+                blockchain_hash=invoice.blockchain_hash or "",
+                timestamp=invoice.timestamp.isoformat()
+            )
+            invoice.qr_code = qr_code.generate_qr_code(qr_data_new, format="png")
+        except Exception:
+            pass  # QR generation is optional for verification
+        
+        return schemas.QRVerifyResponse(
+            valid=True,
+            invoice=invoice,
+            message="Invoice verified successfully"
+        )
+        
+    except Exception as e:
+        return schemas.QRVerifyResponse(
             valid=False,
             error=f"Verification failed: {str(e)}"
         )
