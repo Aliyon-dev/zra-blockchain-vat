@@ -5,7 +5,7 @@ from app.services import validation, blockchain, qr_code
 from datetime import datetime
 from uuid import UUID  # <-- 1. Import UUID
 
-def create_invoice(db: Session, invoice: schemas.InvoiceCreate) -> models.Invoice:
+def create_invoice(db: Session, invoice: schemas.InvoiceCreate, user_id: str) -> models.Invoice:
     # Validate TPINs
     if not validation.is_valid_tpin(invoice.supplier_tpin) or not validation.is_valid_tpin(invoice.buyer_tpin):
         raise ValueError("Invalid TPIN format (expected 10 digits)")
@@ -37,6 +37,7 @@ def create_invoice(db: Session, invoice: schemas.InvoiceCreate) -> models.Invoic
     
     # Create invoice record
     db_inv = models.Invoice(
+        user_id=user_id,
         supplier_tpin=invoice.supplier_tpin,
         buyer_tpin=invoice.buyer_tpin,
         vat=invoice.vat,
@@ -103,3 +104,9 @@ def cancel_invoice(db: Session, invoice_id: UUID):
     db.commit()
     db.refresh(inv)
     return inv
+
+def get_user_invoices(db: Session, user_id: str, skip: int = 0, limit: int = 100):
+    """Get invoices for a specific user with pagination"""
+    return db.query(models.Invoice).filter(
+        models.Invoice.user_id == user_id
+    ).offset(skip).limit(limit).all()

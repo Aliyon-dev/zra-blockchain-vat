@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2 } from 'lucide-react'
 import InvoiceResult from '@/components/invoice-result'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function InvoiceForm() {
   const [formData, setFormData] = useState({
@@ -19,17 +20,28 @@ export default function InvoiceForm() {
   })
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<any>(null)
+  const { session } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setResult(null)
 
+    // Check if user is authenticated
+    if (!session?.access_token) {
+      setResult({ error: 'Please log in to create invoices' })
+      setLoading(false)
+      return
+    }
+
     try {
+      //console.log(`Session: ${session}`);
+      //console.log(`Session access token: ${session?.access_token}`);
       const response = await fetch('/api/invoices', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify(formData),
       })

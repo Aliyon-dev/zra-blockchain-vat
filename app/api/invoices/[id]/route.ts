@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ invoice_id: parseInt(invoiceId) }),
+      body: JSON.stringify({ invoice_id: invoiceId }),
     })
 
     if (!response.ok) {

@@ -16,6 +16,8 @@ class InvoiceRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
+    user_id: str
+    invoice_number: str
     supplier_tpin: str
     buyer_tpin: str
     vat: float
@@ -31,11 +33,6 @@ class InvoiceRead(BaseModel):
     # QR Code field (computed, not stored in DB)
     qr_code: Optional[str] = None
     
-    @computed_field
-    @property
-    def invoiceId(self) -> str:
-        """Frontend-compatible invoice ID"""
-        return str(self.id)
 
 
 class InvoiceVerify(BaseModel):

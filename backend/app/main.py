@@ -6,6 +6,7 @@ from app.database import engine, Base, get_db
 from app.supabase_client import ping_supabase
 from app.config import DEV_CREATE_DB, ALLOWED_ORIGINS, SUPABASE_URL, SUPABASE_KEY
 from app.services import blockchain, qr_code
+from app.auth import get_current_user_id
 from uuid import UUID
 
 if DEV_CREATE_DB:
@@ -41,11 +42,17 @@ def db_health():
         return {"ok": False, "error": str(e)}
 
 @app.post("/invoices", response_model=schemas.InvoiceRead, status_code=201)
-def create_invoice(invoice: schemas.InvoiceCreate, db: Session = Depends(get_db)):
+def create_invoice(invoice: schemas.InvoiceCreate, db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
     try:
-        return crud.create_invoice(db, invoice)
+        return crud.create_invoice(db, invoice, user_id)
     except ValueError as ve:
         raise HTTPException(status_code=409, detail=str(ve))
+
+@app.get("/invoices", response_model=list[schemas.InvoiceRead])
+def get_user_invoices(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
+    """Get invoices for the authenticated user"""
+    invoices = crud.get_user_invoices(db, user_id, skip=skip, limit=limit)
+    return invoices
 
 @app.get("/invoices/{invoice_id}", response_model=schemas.InvoiceRead)
 def read_invoice(invoice_id: UUID, db: Session = Depends(get_db)):

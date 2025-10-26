@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Receipt, ArrowLeft, FileText, Shield, Zap, Lock } from "lucide-react"
 import InvoiceForm from "@/components/invoice-form"
+import ProtectedRoute from "@/components/protected-route"
 
 export default function IssuePage() {
   const features = [
@@ -23,7 +24,8 @@ export default function IssuePage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20">
       {/* Animated Background */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-40 -right-32 w-80 h-80 bg-gradient-to-r from-blue-200 to-cyan-200 rounded-full blur-3xl opacity-20" />
@@ -227,6 +229,7 @@ export default function IssuePage() {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </ProtectedRoute>
   )
 }

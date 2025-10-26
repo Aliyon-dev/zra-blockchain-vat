@@ -13,6 +13,7 @@ interface InvoiceResultProps {
     blockchain_tx_ref?: string
     blockchain_timestamp?: string
     timestamp?: string
+    qr_code?: string
     qrCode?: string
     error?: string
   }
@@ -86,13 +87,30 @@ export default function InvoiceResult({ data }: InvoiceResultProps) {
           </div>
         </div>
 
-        {data.qrCode && (
+        {(data.qr_code || data.qrCode) && (
           <div className="flex flex-col items-center gap-4 p-6 rounded-lg bg-card border border-border">
             <p className="text-sm font-medium text-muted-foreground">QR Code for Quick Verification</p>
             <div className="relative w-48 h-48 bg-white p-4 rounded-lg">
-              <Image src={data.qrCode || "/placeholder.svg"} alt="Invoice QR Code" fill className="object-contain" />
+              <Image 
+                src={data.qr_code || data.qrCode || "/placeholder.svg"} 
+                alt="Invoice QR Code" 
+                fill 
+                className="object-contain" 
+                unoptimized
+              />
             </div>
             <p className="text-xs text-muted-foreground text-center">Scan this code to quickly verify the invoice</p>
+            <button
+              onClick={() => {
+                const link = document.createElement('a');
+                link.href = data.qr_code || data.qrCode || '';
+                link.download = `invoice-${data.invoiceId}-qr.png`;
+                link.click();
+              }}
+              className="text-sm text-primary hover:underline"
+            >
+              Download QR Code
+            </button>
           </div>
         )}
       </CardContent>

@@ -8,12 +8,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, Search } from "lucide-react"
+import { useRouter } from "next/navigation"
 import VerifyResult from "@/components/verify-result"
 
 export default function VerifyForm() {
   const [invoiceId, setInvoiceId] = useState("")
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<any>(null)
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -70,6 +72,10 @@ export default function VerifyForm() {
                   Verify Invoice
                 </>
               )}
+            </Button>
+            <Button type="button" onClick={() => router.push("/verify-qr")} className="w-full bg-transparent text-blue-600 border-blue-600 border" size="lg">
+              Verfiy with QR Code
+            
             </Button>
           </form>
         </CardContent>
