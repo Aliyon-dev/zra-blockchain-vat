@@ -9,11 +9,12 @@ interface VerifyResultProps {
   data: {
     valid?: boolean
     invoiceId?: string
-    supplierTpin?: string
-    buyerTpin?: string
+    supplier_tpin?: string
+    buyer_tpin?: string
     amount?: number
     vat?: number
     hash?: string
+    blockchain_hash?: string
     timestamp?: string
     qrCode?: string
     error?: string
@@ -65,7 +66,7 @@ export default function VerifyResult({ data }: VerifyResultProps) {
               <User className="h-5 w-5 text-primary mt-0.5" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-muted-foreground mb-1">Supplier TPIN</p>
-                <p className="text-base font-mono text-foreground">{data.supplierTpin}</p>
+                <p className="text-base font-mono text-foreground">{data.supplier_tpin}</p>
               </div>
             </div>
 
@@ -73,7 +74,7 @@ export default function VerifyResult({ data }: VerifyResultProps) {
               <User className="h-5 w-5 text-primary mt-0.5" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-muted-foreground mb-1">Buyer TPIN</p>
-                <p className="text-base font-mono text-foreground">{data.buyerTpin}</p>
+                <p className="text-base font-mono text-foreground">{data.buyer_tpin}</p>
               </div>
             </div>
           </div>
@@ -108,7 +109,7 @@ export default function VerifyResult({ data }: VerifyResultProps) {
             <Hash className="h-5 w-5 text-primary mt-0.5" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-muted-foreground mb-1">Blockchain Hash</p>
-              <p className="text-sm font-mono text-foreground break-all">{data.hash}</p>
+              <p className="text-sm font-mono text-foreground break-all">{data.blockchain_hash || data.hash}</p>
             </div>
           </div>
 

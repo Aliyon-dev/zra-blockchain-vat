@@ -152,6 +152,10 @@ export default function VerifyForm() {
                 </>
               )}
             </Button>
+            <Button type="button" onClick={() => router.push("/verify-qr")} className="w-full bg-transparent text-blue-600 border-blue-600 border" size="lg">
+              Verfiy with QR Code
+            
+            </Button>
           </form>
 
           {isScanning && (

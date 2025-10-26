@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const Login = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,8 @@ export const Login = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { signIn } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -23,13 +26,18 @@ export const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
     
     try {
-      console.log('VAT System Login attempt:', formData);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      alert('Accessing VAT Invoice Management System...');
+      const { error } = await signIn(formData.email, formData.password);
+      
+      if (error) {
+        setError(error.message);
+      }
+      // Success is handled by AuthContext (redirect to dashboard)
     } catch (error) {
       console.error('Login error:', error);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -136,6 +144,13 @@ export const Login = () => {
                 Sign in to your VAT management dashboard
               </p>
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="p-4 rounded-xl bg-red-500/10 border border-red-400/20 text-red-300 text-sm">
+                {error}
+              </div>
+            )}
 
             {/* Login Form */}
             <form className="space-y-6" onSubmit={handleSubmit}>
