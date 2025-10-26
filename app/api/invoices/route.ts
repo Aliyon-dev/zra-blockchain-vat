@@ -1,5 +1,5 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { headers } from 'next/headers'; // This is the correct function to use
+import { type NextRequest, NextResponse } from "next/server"
+import QRCode from "qrcode"
 
 const BACKEND_URL = process.env.BACKEND_URL;
 
