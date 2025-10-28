@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server"
 import QRCode from "qrcode"
 
@@ -6,6 +7,7 @@ const BACKEND_URL = process.env.BACKEND_URL;
 if (!BACKEND_URL) {
   throw new Error('BACKEND_URL environment variable is required');
 }
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -82,11 +84,13 @@ export async function GET(request: NextRequest) {
         'Content-Type': 'application/json',
       },
     });
+    console.log(BACKEND_URL)
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Backend error' }));
+      const data = await response.text();
+      console.log("Error fetching invoices:", data);
       return NextResponse.json(
-        { error: errorData.error || 'Failed to fetch invoices' },
+        { error: data || 'Failed to fetch invoices' },
         { status: response.status }
       );
     }
@@ -94,6 +98,7 @@ export async function GET(request: NextRequest) {
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
+    console.log(error);
     console.error('Error fetching invoices:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2, Search, Camera, CameraOff, QrCode } from "lucide-react"
 import VerifyResult from "@/components/verify-result"
 import { BrowserMultiFormatReader, NotFoundException } from "@zxing/library"
+import { useRouter } from "next/navigation"
 
 export default function VerifyForm() {
   const [invoiceId, setInvoiceId] = useState("")
@@ -19,7 +20,7 @@ export default function VerifyForm() {
   const [scanError, setScanError] = useState<string>("")
   const videoRef = useRef<HTMLVideoElement>(null)
   const codeReader = useRef<BrowserMultiFormatReader | null>(null)
-
+  const router = useRouter()
   useEffect(() => {
     codeReader.current = new BrowserMultiFormatReader()
 
